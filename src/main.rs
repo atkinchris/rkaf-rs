@@ -1,21 +1,23 @@
 use binrw::BinRead;
 use std::fs::File;
 
-const MAX_MODEL_LEN: usize = 0x22;
+const HEADER_MODEL_LEN: usize = 0x22;
+const HEADER_ID_LEN: usize = 0x1E;
+const HEADER_MANUFACTURER_LEN: usize = 0x38;
 
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"RKAF")]
 struct UpdateHeader {
     length: u32,
-    model: [u8; MAX_MODEL_LEN],
+    model: [u8; HEADER_MODEL_LEN],
+    _id: [u8; HEADER_ID_LEN],
+    manufacturer: [u8; HEADER_MANUFACTURER_LEN],
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_path = "embedded-update.img";
     let mut file = File::open(file_path)?;
     let filesize = file.metadata()?.len();
-
-    println!("Filesize: {}", filesize);
 
     let header = UpdateHeader::read(&mut file).expect("Could not parse header from file");
 
@@ -28,10 +30,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("File length mismatch".into());
     }
 
-    println!(
-        "Model: {}",
-        String::from_utf8(header.model.to_vec()).expect("Model should be valid utf8")
-    );
+    let model = String::from_utf8(header.model.to_vec()).expect("Model should be valid utf8");
+    let manufacturer =
+        String::from_utf8(header.manufacturer.to_vec()).expect("Manufacturer should be valid utf8");
+
+    println!("Filesize: {}", filesize);
+    println!("Model: {}", model);
+    println!("Manufacturer: {}", manufacturer);
 
     Ok(())
 }
