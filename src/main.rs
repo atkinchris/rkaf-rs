@@ -2,11 +2,11 @@ use binrw::BinRead;
 use clap::Parser;
 use std::fs::File;
 
-const HEADER_MODEL_LEN: usize = 0x22;
-const HEADER_ID_LEN: usize = 0x1E;
-const HEADER_MANUFACTURER_LEN: usize = 0x38;
-const MAX_NAME_LEN: usize = 0x20;
-const MAX_FULL_PATH_LEN: usize = 0x3C;
+const HEADER_MODEL_LEN: usize = 0x22; // 34
+const HEADER_ID_LEN: usize = 0x1E; // 30
+const HEADER_MANUFACTURER_LEN: usize = 0x38; // 56
+const MAX_NAME_LEN: usize = 0x20; // 32
+const MAX_FULL_PATH_LEN: usize = 0x3C; // 60
 
 #[derive(Debug, BinRead)]
 struct UpdatePart {
