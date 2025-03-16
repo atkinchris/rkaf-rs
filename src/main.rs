@@ -1,4 +1,5 @@
 use binrw::BinRead;
+use clap::Parser;
 use std::fs::File;
 
 const HEADER_MODEL_LEN: usize = 0x22;
@@ -17,9 +18,17 @@ struct UpdateHeader {
     number_of_parts: u32,
 }
 
+#[derive(Parser)]
+struct Args {
+    /// Input file
+    #[arg(short, long)]
+    input: String,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let file_path = "embedded-update.img";
-    let mut file = File::open(file_path)?;
+    let args = Args::parse();
+
+    let mut file = File::open(args.input).expect("Could not open file ({}) for reading");
     let filesize = file.metadata()?.len();
 
     let header = UpdateHeader::read(&mut file).expect("Could not parse header from file");
