@@ -1,10 +1,9 @@
-use binrw::{BinRead, binrw};
+use binrw::BinRead;
 use std::fs::File;
 
 const MAX_MODEL_LEN: usize = 0x22;
 
-#[derive(Debug)]
-#[binrw]
+#[derive(Debug, BinRead)]
 #[brw(big, magic = b"RKAF")]
 struct UpdateHeader {
     length: u32,
@@ -17,7 +16,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut fp = File::open(file_path)?;
 
     let rkaf = UpdateHeader::read(&mut fp)?;
-    println!("{:?}", rkaf.model);
+
+    println!("Filesize: {}", rkaf.length);
+    println!(
+        "Model: {}",
+        String::from_utf8(rkaf.model.to_vec()).expect("Model should be valid utf8")
+    );
 
     Ok(())
 }
