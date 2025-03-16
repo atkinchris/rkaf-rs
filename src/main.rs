@@ -12,6 +12,9 @@ struct UpdateHeader {
     model: [u8; HEADER_MODEL_LEN],
     _id: [u8; HEADER_ID_LEN],
     manufacturer: [u8; HEADER_MANUFACTURER_LEN],
+    _unknown: u32,
+    _version: u32,
+    number_of_parts: u32,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,6 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Filesize: {}", filesize);
     println!("Model: {}", model);
     println!("Manufacturer: {}", manufacturer);
+    println!("Number of parts: {}", header.number_of_parts);
 
     Ok(())
 }
