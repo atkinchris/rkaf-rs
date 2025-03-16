@@ -5,6 +5,14 @@ use std::fs::File;
 const HEADER_MODEL_LEN: usize = 0x22;
 const HEADER_ID_LEN: usize = 0x1E;
 const HEADER_MANUFACTURER_LEN: usize = 0x38;
+const MAX_NAME_LEN: usize = 0x20;
+const MAX_FULL_PATH_LEN: usize = 0x3C;
+
+#[derive(Debug, BinRead)]
+struct UpdatePart {
+    name: [u8; MAX_NAME_LEN],
+    full_path: [u8; MAX_FULL_PATH_LEN],
+}
 
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"RKAF")]
@@ -16,6 +24,8 @@ struct UpdateHeader {
     _unknown: u32,
     _version: u32,
     number_of_parts: u32,
+    #[br(count = number_of_parts)]
+    parts: Vec<UpdatePart>,
 }
 
 #[derive(Parser)]
@@ -50,6 +60,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Model: {}", model);
     println!("Manufacturer: {}", manufacturer);
     println!("Number of parts: {}", header.number_of_parts);
+
+    for part in header.parts.iter() {
+        println!("Name: {:?}", part.name);
+        println!("Full path: {:?}", part.full_path);
+    }
 
     Ok(())
 }
