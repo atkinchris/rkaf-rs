@@ -1,3 +1,3 @@
 /target
-embedded-update.img
+*.img
 .DS_Store
