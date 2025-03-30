@@ -207,7 +207,7 @@ struct Cli {
     key: String,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let input_file = &cli.input_file;
@@ -232,14 +232,16 @@ fn main() {
     }
 
     // Decrypt header
-    match decrypt_header(input_file, output_file, &key) {
-        Ok(super_block) => {
-            println!("Header decryption completed successfully");
-            println!("{:#?}", super_block);
-        }
+    let super_block = match decrypt_header(input_file, output_file, &key) {
+        Ok(super_block) => super_block,
         Err(e) => {
             println!("Error during decryption: {}", e);
             process::exit(1);
         }
-    }
+    };
+
+    println!("Header decryption completed successfully");
+    println!("{:#?}", super_block);
+
+    Ok(())
 }
