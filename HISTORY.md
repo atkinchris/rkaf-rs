@@ -1,0 +1,9 @@
+# Reverse Engineering an Embedded Device
+
+Some time ago I received a low-cost handheld games console, containing a small set of licensed games. The games themselves were not particularly interesting to me, but the device had open source credits in the menu suggesting that it was running on Linux. So, just as I had with many well intentioned gifts from my childhood - I decided to take it apart and see how it worked.
+
+Unscrewing the device and removing the shield revealed a Rockchip RK3126 SoC. This is a low-cost ARM SoC, which is often used in low-end Android devices - further suggesting that this device was running a Linux kernel. In the middle of the PCB were three unpopulated through holes, with a white rectangle outline. Unpopulated pads are often used for JTAG or UART debugging, and the shape of the pads further hinted at this: two circles and a square.
+
+Using a cheap multimeter, I checked the voltages across two of the pads at a time during device boot. The square pad plus either of the circles produced an average voltage of 3.3V - suggesting ground. As the device booted, the voltage on one of the circles fluctuated, and the other remained constant. This likely meant the varying circle was a UART RX pin (presumably emitting logs) and the other circle a silent TX pin.
+
+I connected a USB to TTL serial cable to the pads, and powered on the device. Sure enough, I was greeted with a boot log from u-boot up to the point where the kernel was loaded. Unfortunately, the kernel was not configured to output logs to the serial console, so I was unable to see any further information. However, as my serial connection was bi-directional, I was able to send commands to the device - including break (ASCII `0x03`). Spamming this on device boot got me a u-boot prompt - and access to u-boot's `ums` command, which let me mount the internal flash as a USB mass storage device.
