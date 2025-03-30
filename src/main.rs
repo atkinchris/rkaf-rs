@@ -3,7 +3,7 @@ use bitflags::bitflags;
 use chrono::DateTime;
 use clap::Parser;
 use std::fs;
-use std::io::{self, Cursor, Read, Write};
+use std::io::{self, Cursor, Read};
 use std::path::Path;
 use std::process;
 
@@ -125,40 +125,6 @@ fn hex_to_bytes(hex: &str) -> Result<Vec<u8>, &'static str> {
     Ok(bytes)
 }
 
-/// Decrypt and save header
-fn decrypt_header(input_file: &str, output_file: &str, key: &[u8]) -> io::Result<SuperBlock> {
-    // Read input file
-    let mut file = fs::File::open(input_file)?;
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)?;
-
-    // Decrypt header
-    let mut header_data = buffer[..96].to_vec();
-    let mut rc4 = RC4::new(key);
-    rc4.process(&mut header_data);
-
-    let mut header_cursor = Cursor::new(&header_data);
-    let super_block = match SuperBlock::read(&mut header_cursor) {
-        Ok(block) => block,
-        Err(e) => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("Failed to parse SuperBlock: {}", e),
-            ));
-        }
-    };
-
-    // Save header
-    let mut output = fs::File::create(output_file)?;
-    output.write_all(&header_data)?;
-
-    println!(
-        "Successfully decrypted and saved SquashFS header to {}",
-        output_file
-    );
-    Ok(super_block)
-}
-
 #[derive(Parser)]
 #[command(name = "SquashFS Header Decryptor")]
 #[command(about = "Decrypts and validates SquashFS headers")]
@@ -193,9 +159,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         process::exit(1);
     }
 
-    // Decrypt header
-    let super_block = match decrypt_header(input_file, output_file, &key) {
-        Ok(super_block) => super_block,
+    // Read input file
+    let mut file = fs::File::open(input_file)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+
+    // Decrypt the file
+    let mut rc4 = RC4::new(&key);
+    rc4.process(&mut buffer);
+
+    let mut buffer_cursor = Cursor::new(buffer);
+
+    let super_block = match SuperBlock::read(&mut buffer_cursor) {
+        Ok(block) => block,
         Err(e) => {
             println!("Error during decryption: {}", e);
             process::exit(1);
