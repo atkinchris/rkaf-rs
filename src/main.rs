@@ -1,4 +1,5 @@
 use binrw::{BinRead, BinResult};
+use bitflags::bitflags;
 use chrono::DateTime;
 use clap::Parser;
 use std::fs;
@@ -31,6 +32,44 @@ fn as_optional() -> BinResult<Option<u64>> {
     }
 }
 
+bitflags! {
+  #[derive(Debug)]
+  pub struct SuperBlockFlags: u16 {
+      // 0x0001 Inodes are stored uncompressed.
+      const inodes_uncompressed = 0x0001;
+      // 0x0002 Data blocks are stored uncompressed.
+      const data_uncompressed = 0x0002;
+      // 0x0004 Unused, should always be unset.
+      const unused = 0x0004;
+      // 0x0008 Fragments are stored uncompressed.
+      const fragments_uncompressed = 0x0008;
+      // 0x0010 Fragments are not used.
+      const fragments_not_used = 0x0010;
+      // 0x0020 Fragments are always generated.
+      const fragments_always_generated = 0x0020;
+      // 0x0040 Data has been deduplicated.
+      const data_deduplicated = 0x0040;
+      // 0x0080 NFS export table exists.
+      const nfs_export_table_exists = 0x0080;
+      // 0x0100 Xattrs are stored uncompressed.
+      const xattrs_uncompressed = 0x0100;
+      // 0x0200 There are no Xattrs in the archive.
+      const no_xattrs = 0x0200;
+      // 0x0400 Compressor options are present.
+      const compressor_options_present = 0x0400;
+      // 0x0800 The ID table is uncompressed.
+      const id_table_uncompressed = 0x0800;
+  }
+}
+
+impl SuperBlockFlags {
+    #[binrw::parser(reader, endian)]
+    fn parse() -> BinResult<SuperBlockFlags> {
+        let flags = <u16>::read_options(reader, endian, ())?;
+        Ok(SuperBlockFlags::from_bits_truncate(flags))
+    }
+}
+
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"hsqs")]
 #[br(assert(version_major == 4))]
@@ -47,7 +86,8 @@ struct SuperBlock {
     frag_count: u32,
     compressor: u16,
     block_log: u16,
-    flags: u16,
+    #[br(parse_with = SuperBlockFlags::parse)]
+    flags: SuperBlockFlags,
     id_count: u16,
     version_major: u16,
     version_minor: u16,
@@ -58,8 +98,10 @@ struct SuperBlock {
     xattr_id_table_start: Option<u64>,
     inode_table_start: u64,
     directory_table_start: u64,
-    fragment_table_start: u64,
-    export_table_start: u64,
+    #[br(parse_with = as_optional)]
+    fragment_table_start: Option<u64>,
+    #[br(parse_with = as_optional)]
+    export_table_start: Option<u64>,
 }
 
 /// Convert a hex string to bytes
