@@ -21,11 +21,32 @@ fn as_datetime() -> BinResult<String> {
 
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"hsqs")]
+#[br(assert(version_major == 4))]
+#[br(assert(version_minor == 0))]
+#[br(assert((block_size as f32).log(2.0).round() as u16 == block_log))]
+// Block size must be a power of two between 4096 (4k) and 1048576 (1 MiB).
+#[brw(assert(block_size.is_power_of_two()))]
+#[br(assert(block_size >= 4096 && block_size <= 1048576))]
 struct SuperBlock {
     inode_count: u32,
     #[br(parse_with = as_datetime)]
     mod_time: String,
     block_size: u32,
+    frag_count: u32,
+    compressor: u16,
+    block_log: u16,
+    flags: u16,
+    id_count: u16,
+    version_major: u16,
+    version_minor: u16,
+    root_inode: u64,
+    bytes_used: u64,
+    id_table_start: u64,
+    xattr_id_table_start: u64,
+    inode_table_start: u64,
+    directory_table_start: u64,
+    fragment_table_start: u64,
+    export_table_start: u64,
 }
 
 /// Convert a hex string to bytes
