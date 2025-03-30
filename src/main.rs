@@ -8,7 +8,10 @@ use std::path::Path;
 use std::process;
 
 mod rc4;
+mod squashfs;
+
 use rc4::RC4;
+use squashfs::{SQUASHFS_METADATA_SIZE, squashfs_inode_offset};
 
 #[binrw::parser(reader, endian)]
 fn as_datetime() -> BinResult<String> {
@@ -81,6 +84,8 @@ struct CompressorOptions {}
 #[br(assert((block_size as f32).log(2.0).round() as u16 == block_log))]
 // Block size must be a power of two between 4096 (4k) and 1048576 (1 MiB).
 #[brw(assert(block_size.is_power_of_two() && block_size >= 4096 && block_size <= 1048576))]
+// The root inode offset must be within a metadata block.
+#[br(assert(squashfs_inode_offset(root_inode) <= SQUASHFS_METADATA_SIZE))]
 struct SuperBlock {
     inode_count: u32,
     #[br(parse_with = as_datetime)]
