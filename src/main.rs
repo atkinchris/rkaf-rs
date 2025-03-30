@@ -3,7 +3,7 @@ use bitflags::bitflags;
 use chrono::DateTime;
 use clap::Parser;
 use std::fs;
-use std::io::{self, Cursor, Read};
+use std::io::{self, Cursor, Read, Write};
 use std::path::Path;
 use std::process;
 
@@ -173,6 +173,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut rc4 = RC4::new(&key);
     rc4.process(&mut buffer);
 
+    // Write the decrypted data to the output file
+    let mut output_file = fs::File::create(output_file)?;
+    output_file.write_all(&buffer)?;
+    println!("Decrypted data written");
+
+    // Create a cursor to read the decrypted data
+    // This is necessary because the BinRead trait requires a reader
     let mut buffer_cursor = Cursor::new(buffer);
 
     let super_block = match SuperBlock::read(&mut buffer_cursor) {
