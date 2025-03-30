@@ -71,6 +71,9 @@ impl SuperBlockFlags {
 }
 
 #[derive(Debug, BinRead)]
+struct CompressorOptions {}
+
+#[derive(Debug, BinRead)]
 #[brw(little, magic = b"hsqs")]
 // SquashFS only practically supports one version of the header (4.0).
 #[br(assert(version_major == 4 && version_minor == 0))]
@@ -102,6 +105,8 @@ struct SuperBlock {
     fragment_table_start: Option<u64>,
     #[br(parse_with = as_optional)]
     export_table_start: Option<u64>,
+    #[br(if(flags.contains(SuperBlockFlags::compressor_options_present)))]
+    compressor_options: Option<CompressorOptions>,
 }
 
 /// Convert a hex string to bytes
