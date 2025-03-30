@@ -19,6 +19,18 @@ fn as_datetime() -> BinResult<String> {
     Ok(datetime.to_rfc3339())
 }
 
+#[binrw::parser(reader, endian)]
+fn as_optional() -> BinResult<Option<u64>> {
+    // Read the 4-byte value
+    let value = <u64>::read_options(reader, endian, ())?;
+    // If the value is 0, return None
+    if value == 0xFFFFFFFFFFFFFFFF {
+        Ok(None)
+    } else {
+        Ok(Some(value))
+    }
+}
+
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"hsqs")]
 #[br(assert(version_major == 4))]
@@ -42,7 +54,8 @@ struct SuperBlock {
     root_inode: u64,
     bytes_used: u64,
     id_table_start: u64,
-    xattr_id_table_start: u64,
+    #[br(parse_with = as_optional)]
+    xattr_id_table_start: Option<u64>,
     inode_table_start: u64,
     directory_table_start: u64,
     fragment_table_start: u64,
