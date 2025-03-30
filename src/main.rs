@@ -72,12 +72,12 @@ impl SuperBlockFlags {
 
 #[derive(Debug, BinRead)]
 #[brw(little, magic = b"hsqs")]
-#[br(assert(version_major == 4))]
-#[br(assert(version_minor == 0))]
+// SquashFS only practically supports one version of the header (4.0).
+#[br(assert(version_major == 4 && version_minor == 0))]
+// The Log2 of the block size must be equal to the block log.
 #[br(assert((block_size as f32).log(2.0).round() as u16 == block_log))]
 // Block size must be a power of two between 4096 (4k) and 1048576 (1 MiB).
-#[brw(assert(block_size.is_power_of_two()))]
-#[br(assert(block_size >= 4096 && block_size <= 1048576))]
+#[brw(assert(block_size.is_power_of_two() && block_size >= 4096 && block_size <= 1048576))]
 struct SuperBlock {
     inode_count: u32,
     #[br(parse_with = as_datetime)]
