@@ -174,23 +174,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
 
-    // Decrypt the file
-    let mut rc4 = RC4::new(&key);
-    rc4.process(&mut buffer);
+    // Take the first 96 bytes of the file and decrypt them into the SuperBlock buffer
+    let mut superblock_data = buffer[..96].to_vec();
 
-    // Write the decrypted data to the output file
-    let mut output_file = fs::File::create(output_file)?;
-    output_file.write_all(&buffer)?;
-    println!("Decrypted data written");
+    // Decrypt the header data using RC4
+    let mut rc4 = RC4::new(&key);
+    rc4.process(&mut superblock_data);
 
     // Create a cursor to read the decrypted data
     // This is necessary because the BinRead trait requires a reader
-    let mut buffer_cursor = Cursor::new(buffer);
+    let mut superblock_cursor = Cursor::new(&superblock_data);
 
-    let super_block = match SuperBlock::read(&mut buffer_cursor) {
+    let super_block = match SuperBlock::read(&mut superblock_cursor) {
         Ok(block) => block,
         Err(e) => {
-            println!("Error during decryption: {}", e);
+            println!("Error parsing SuperBlock: {}", e);
             process::exit(1);
         }
     };
