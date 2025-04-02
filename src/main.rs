@@ -31,11 +31,10 @@ fn hex_to_bytes(hex: &str) -> Result<Vec<u8>, &'static str> {
 }
 
 #[derive(Parser)]
-#[command(name = "SquashFS Header Decryptor")]
-#[command(about = "Decrypts and validates SquashFS headers")]
+#[command(name = "SquashFS Decryptor")]
+#[command(about = "Decrypts SquashFS files using RC4")]
 struct Cli {
     input_file: String,
-    output_file: String,
     #[arg(long)]
     key: String,
 }
@@ -44,7 +43,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let input_file = &cli.input_file;
-    let output_file = &cli.output_file;
     let key_str = &cli.key;
 
     // Convert key from hex string to bytes
