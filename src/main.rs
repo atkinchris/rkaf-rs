@@ -69,17 +69,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
 
-    let mut superblock_data = buffer.to_vec();
-
     // Decrypt the header data using RC4
     let mut rc4 = RC4::new(&key);
-    rc4.process(&mut superblock_data);
+    rc4.process(&mut buffer[..96]);
 
     // Create a cursor to read the decrypted data
     // This is necessary because the BinRead trait requires a reader
-    let superblock_cursor = Cursor::new(&superblock_data);
+    let cursor = Cursor::new(&buffer);
 
-    let read_filesystem = match FilesystemReader::from_reader(superblock_cursor) {
+    let read_filesystem = match FilesystemReader::from_reader(cursor) {
         Ok(fsr) => fsr,
         Err(e) => {
             println!("Error parsing SquashFS: {}", e);
