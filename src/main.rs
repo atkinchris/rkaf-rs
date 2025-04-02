@@ -1,12 +1,14 @@
 use backhand::FilesystemReader;
 use backhand::kind::Kind;
 use clap::Parser;
+use compressor::CustomCompressor;
 use std::fs::File;
 use std::io::{Cursor, Read};
 use std::path::Path;
 use std::process;
 use tracing_subscriber::prelude::*;
 
+mod compressor;
 mod rc4;
 
 use rc4::RC4;
@@ -81,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // This is necessary because the BinRead trait requires a reader
     let cursor = Cursor::new(&buffer);
 
-    let kind = Kind::from_target("le_v4_0")?;
+    let kind = Kind::new(&CustomCompressor);
     let filesystem = FilesystemReader::from_reader_with_offset_and_kind(cursor, 0, kind)?;
 
     filesystem.files().for_each(|file| {
