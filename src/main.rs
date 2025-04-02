@@ -75,15 +75,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // This is necessary because the BinRead trait requires a reader
     let cursor = Cursor::new(&buffer);
 
-    let read_filesystem = match FilesystemReader::from_reader(cursor) {
-        Ok(fsr) => fsr,
-        Err(e) => {
-            println!("Error parsing SquashFS: {}", e);
-            process::exit(1);
-        }
-    };
+    let filesystem = FilesystemReader::from_reader(cursor)?;
 
-    read_filesystem.files().for_each(|file| {
+    filesystem.files().for_each(|file| {
         println!("File: {}", file.fullpath.display());
     });
 
