@@ -91,8 +91,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (superblock, _) => superblock,
     };
 
-    println!("Superblock: {:#?}", superblock);
-
     // Find and decrypt the fragment table size, ready for decryption and decompression
     // TODO: Check if the fragment table is present & how many blocks it has
     // This implementation assumes that the fragment table is present and has 1 block
