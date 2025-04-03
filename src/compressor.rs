@@ -5,7 +5,17 @@ use backhand::{
 };
 
 #[derive(Copy, Clone)]
-pub struct CustomCompressor;
+pub struct CustomCompressor {
+    pub _key: [u8; 16],
+}
+
+impl CustomCompressor {
+    // Compressors need a static lifetime, so we need to leak the box
+    pub fn new_static(key: [u8; 16]) -> &'static Self {
+        let compressor = Box::new(Self { _key: key });
+        Box::leak(compressor)
+    }
+}
 
 // Special decompress that only has support for the Rust version of gzip: zune-inflate for
 // decompression.
