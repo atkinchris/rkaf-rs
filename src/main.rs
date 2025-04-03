@@ -14,20 +14,22 @@ mod rc4;
 use rc4::RC4;
 
 /// Convert a hex string to bytes
-fn hex_to_bytes(hex: &str) -> Result<Vec<u8>, &'static str> {
+fn hex_to_bytes(hex: &str) -> Result<[u8; 16], &'static str> {
     let hex = hex.replace(" ", "");
-    if hex.len() % 2 != 0 {
-        return Err("Hex string must have an even number of characters");
+
+    // Check if the hex string has 32 characters
+    if hex.len() != 32 {
+        return Err("Hex string must be 32 characters long");
     }
 
-    let mut bytes = Vec::with_capacity(hex.len() / 2);
+    let mut bytes = [0u8; 16];
     let mut i = 0;
 
     while i < hex.len() {
         let high = u8::from_str_radix(&hex[i..i + 1], 16).map_err(|_| "Invalid hex character")?;
         let low =
             u8::from_str_radix(&hex[i + 1..i + 2], 16).map_err(|_| "Invalid hex character")?;
-        bytes.push((high << 4) | low);
+        bytes[i / 2] = (high << 4) | low;
         i += 2;
     }
 
