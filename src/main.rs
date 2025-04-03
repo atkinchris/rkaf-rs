@@ -1,7 +1,6 @@
-use backhand::FilesystemReader;
 use backhand::kind::Kind;
+use backhand::{BufReadSeek, FilesystemReader, Squashfs};
 use clap::Parser;
-use compressor::CustomCompressor;
 use std::fs::File;
 use std::io::{Cursor, Read};
 use std::path::Path;
@@ -11,6 +10,7 @@ use tracing_subscriber::prelude::*;
 mod compressor;
 mod rc4;
 
+use compressor::CustomCompressor;
 use rc4::RC4;
 
 /// Convert a hex string to bytes
@@ -77,13 +77,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
 
-    // Decrypt the header data using RC4
+    // Decrypt the header data using RC4, as this won't be compressed
     let mut rc4 = RC4::new(&key);
     rc4.process(&mut buffer[..96]);
 
-    // Create a cursor to read the decrypted data
-    // This is necessary because the BinRead trait requires a reader
-    let cursor = Cursor::new(&buffer);
+    // Create a cursor for the superblock
+    let cursor = Cursor::new(buffer.clone());
+    let mut reader: Box<dyn BufReadSeek> = Box::new(cursor);
+    let superblock =
+        Squashfs::superblock_and_compression_options(&mut reader, &Kind::from_target("le_v4_0")?)?;
+
+    println!("Superblock: {:#?}", superblock);
 
     // Create the custom compressor with the key.
     // This needs to be a static reference, so we use the new_static function.
