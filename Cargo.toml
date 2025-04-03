@@ -5,8 +5,5 @@ edition = "2024"
 
 [dependencies]
 backhand = "0.21.0"
-binrw = "0.14.1"
-bitflags = "2.9.0"
-chrono = "0.4.40"
 clap = { version = "4.5.32", features = ["derive"] }
 tracing-subscriber = "0.3.19"
