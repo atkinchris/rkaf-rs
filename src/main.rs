@@ -94,6 +94,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Superblock: {:#?}", superblock);
 
     // Find and decrypt the fragment table size, ready for decryption and decompression
+    // TODO: Check if the fragment table is present & how many blocks it has
+    // This implementation assumes that the fragment table is present and has 1 block
     let fragment_table_lookup_ptr = superblock.frag_table as usize;
     let mut rc4 = RC4::new(&key);
     rc4.process(&mut buffer[fragment_table_lookup_ptr..fragment_table_lookup_ptr + 8]);
