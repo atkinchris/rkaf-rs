@@ -5,7 +5,6 @@ use std::fs::File;
 use std::io::{Cursor, Read};
 use std::path::Path;
 use std::process;
-use tracing_subscriber::prelude::*;
 
 mod compressor;
 mod rc4;
@@ -59,10 +58,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             process::exit(1);
         }
     };
-
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().pretty())
-        .init();
 
     println!("Using key: {}", key_str);
 
