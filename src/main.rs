@@ -84,8 +84,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a cursor for the superblock
     let cursor = Cursor::new(buffer.clone());
     let mut reader: Box<dyn BufReadSeek> = Box::new(cursor);
-    let superblock =
-        Squashfs::superblock_and_compression_options(&mut reader, &Kind::from_target("le_v4_0")?)?;
+    let superblock = match Squashfs::superblock_and_compression_options(
+        &mut reader,
+        &Kind::from_target("le_v4_0")?,
+    )? {
+        (superblock, _) => superblock,
+    };
 
     println!("Superblock: {:#?}", superblock);
 
