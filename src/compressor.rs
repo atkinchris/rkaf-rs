@@ -4,15 +4,17 @@ use backhand::{
     compression::DefaultCompressor, kind::Kind,
 };
 
+use crate::rc4::RC4;
+
 #[derive(Copy, Clone)]
 pub struct CustomCompressor {
-    pub _key: [u8; 16],
+    key: [u8; 16],
 }
 
 impl CustomCompressor {
     // Compressors need a static lifetime, so we need to leak the box
     pub fn new_static(key: [u8; 16]) -> &'static Self {
-        let compressor = Box::new(Self { _key: key });
+        let compressor = Box::new(Self { key });
         Box::leak(compressor)
     }
 }
@@ -26,7 +28,15 @@ impl CompressionAction for CustomCompressor {
         out: &mut Vec<u8>,
         _: Compressor,
     ) -> Result<(), BackhandError> {
-        DefaultCompressor.decompress(bytes, out, Compressor::Gzip)?;
+        // Clone the bytes to a buffer
+        let mut buffer = bytes.to_vec();
+
+        // Decrypt the bytes using RC4
+        let mut rc4 = RC4::new(&self.key);
+        rc4.process(&mut buffer);
+
+        // Decompress the bytes using Gzip
+        DefaultCompressor.decompress(&buffer, out, Compressor::Gzip)?;
         Ok(())
     }
 
