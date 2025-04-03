@@ -93,6 +93,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Superblock: {:#?}", superblock);
 
+    // Decrypt the fragment table
+    rc4.process(&mut buffer[superblock.frag_table as usize..]);
+
     // Create the custom compressor with the key.
     // This needs to be a static reference, so we use the new_static function.
     let compressor = CustomCompressor::new_static(key);
