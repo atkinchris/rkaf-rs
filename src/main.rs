@@ -85,7 +85,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // This is necessary because the BinRead trait requires a reader
     let cursor = Cursor::new(&buffer);
 
-    let kind = Kind::new(&CustomCompressor);
+    // Create the custom compressor with the key.
+    // This needs to be a static reference, so we use the new_static function.
+    let compressor = CustomCompressor::new_static(key);
+    let kind = Kind::new(compressor);
     let filesystem = FilesystemReader::from_reader_with_offset_and_kind(cursor, 0, kind)?;
 
     filesystem.files().for_each(|file| {
