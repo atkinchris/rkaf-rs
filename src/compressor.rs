@@ -14,9 +14,9 @@ impl CompressionAction for CustomCompressor {
         &self,
         bytes: &[u8],
         out: &mut Vec<u8>,
-        compressor: Compressor,
+        _: Compressor,
     ) -> Result<(), BackhandError> {
-        unimplemented!();
+        DefaultCompressor.decompress(bytes, out, Compressor::Gzip)?;
         Ok(())
     }
 
