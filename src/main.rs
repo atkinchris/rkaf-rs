@@ -5,11 +5,11 @@ use std::fs::File;
 use std::io::{Cursor, Read};
 use std::path::Path;
 use std::process;
+use transformer::CustomTransformer;
 
-mod compressor;
 mod rc4;
+mod transformer;
 
-use compressor::CustomCompressor;
 use rc4::RC4;
 
 /// Convert a hex string to bytes
@@ -97,37 +97,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (superblock, _) => superblock,
     };
 
-    // Find and decrypt the fragment table size, ready for decryption and decompression
-    // TODO: Check if the fragment table is present & how many blocks it has
-    // This implementation assumes that the fragment table is present and has 1 block
-    let fragment_table_lookup_ptr = superblock.frag_table as usize;
-    let mut rc4 = RC4::new(&key);
-    rc4.process(&mut buffer[fragment_table_lookup_ptr..fragment_table_lookup_ptr + 8]);
-    let fragment_table_ptr = usize::from_le_bytes(
-        buffer[fragment_table_lookup_ptr..fragment_table_lookup_ptr + 8].try_into()?,
-    );
-    // Decrypt the u16 size of the start of the fragment table, without reseting the RC4 state
-    rc4.process(&mut buffer[fragment_table_ptr..fragment_table_ptr + 2]);
+    // // Find and decrypt the fragment table size, ready for decryption and decompression
+    // // TODO: Check if the fragment table is present & how many blocks it has
+    // // This implementation assumes that the fragment table is present and has 1 block
+    // let fragment_table_lookup_ptr = superblock.frag_table as usize;
+    // let mut rc4 = RC4::new(&key);
+    // rc4.process(&mut buffer[fragment_table_lookup_ptr..fragment_table_lookup_ptr + 8]);
+    // let fragment_table_ptr = usize::from_le_bytes(
+    //     buffer[fragment_table_lookup_ptr..fragment_table_lookup_ptr + 8].try_into()?,
+    // );
+    // // Decrypt the u16 size of the start of the fragment table, without reseting the RC4 state
+    // rc4.process(&mut buffer[fragment_table_ptr..fragment_table_ptr + 2]);
 
-    // Find and decrypt the lookup table size, ready for decryption and decompression
-    let export_table_lookup_ptr = superblock.export_table as usize;
-    let mut rc4 = RC4::new(&key);
-    rc4.process(&mut buffer[export_table_lookup_ptr..export_table_lookup_ptr + 8]);
-    let export_table_ptr = usize::from_le_bytes(
-        buffer[export_table_lookup_ptr..export_table_lookup_ptr + 8].try_into()?,
-    );
-    // Decrypt the u16 size of the export table, without reseting the RC4 state
-    rc4.process(&mut buffer[export_table_ptr..export_table_ptr + 2]);
+    // // Find and decrypt the lookup table size, ready for decryption and decompression
+    // let export_table_lookup_ptr = superblock.export_table as usize;
+    // let mut rc4 = RC4::new(&key);
+    // rc4.process(&mut buffer[export_table_lookup_ptr..export_table_lookup_ptr + 8]);
+    // let export_table_ptr = usize::from_le_bytes(
+    //     buffer[export_table_lookup_ptr..export_table_lookup_ptr + 8].try_into()?,
+    // );
+    // // Decrypt the u16 size of the export table, without reseting the RC4 state
+    // rc4.process(&mut buffer[export_table_ptr..export_table_ptr + 2]);
 
-    // Find and decrypt the ID table size, ready for decryption and decompression
-    let id_table_lookup_ptr = superblock.id_table as usize;
-    let mut rc4 = RC4::new(&key);
-    rc4.process(&mut buffer[id_table_lookup_ptr..id_table_lookup_ptr + 8]);
+    // // Find and decrypt the ID table size, ready for decryption and decompression
+    // let id_table_lookup_ptr = superblock.id_table as usize;
+    // let mut rc4 = RC4::new(&key);
+    // rc4.process(&mut buffer[id_table_lookup_ptr..id_table_lookup_ptr + 8]);
 
     // Create the custom compressor with the key.
     // This needs to be a static reference, so we use the new_static function.
-    let compressor = CustomCompressor::new_static(key);
-    let kind = Kind::new(compressor);
+    let transformer = CustomTransformer::new_static(key);
+    let kind = Kind::new_with_transformer(transformer);
     let cursor = Cursor::new(buffer);
     let filesystem_reader = FilesystemReader::from_reader_with_offset_and_kind(cursor, 0, kind)?;
 

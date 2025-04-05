@@ -1,13 +1,24 @@
 #[derive(Copy, Clone)]
 pub struct RC4 {
-    state: [u8; 256],
-    index_i: u8,
-    index_j: u8,
+    pub state: [u8; 256],
+    pub index_i: u8,
+    pub index_j: u8,
 }
 
 impl RC4 {
-    /// Initialize RC4 with a key
+    /// Create a new RC4 instance with a key
     pub fn new(key: &[u8]) -> Self {
+        let mut rc4 = Self {
+            state: [0; 256],
+            index_i: 0,
+            index_j: 0,
+        };
+        rc4.init(key);
+        rc4
+    }
+
+    /// Initialize RC4 with a key
+    pub fn init(&mut self, key: &[u8]) {
         let mut state = [0u8; 256];
         for i in 0..256 {
             state[i] = i as u8;
@@ -21,11 +32,9 @@ impl RC4 {
             state.swap(i, index_j as usize);
         }
 
-        RC4 {
-            state,
-            index_i: 0,
-            index_j: 0,
-        }
+        self.state = state;
+        self.index_i = 0;
+        self.index_j = 0;
     }
 
     /// Decrypt data in-place
