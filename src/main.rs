@@ -42,10 +42,21 @@ struct Args {
     input_file: String,
     #[arg(long)]
     key: String,
+    #[clap(long, short, action)]
+    debug: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
+
+    // Set up tracing and print to stdout
+    tracing_subscriber::fmt()
+        .with_max_level(match args.debug {
+            true => tracing::Level::TRACE,
+            false => tracing::Level::ERROR,
+        })
+        .pretty()
+        .init();
 
     let input_file = &args.input_file;
     let key_str = &args.key;
