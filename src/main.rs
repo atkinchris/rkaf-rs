@@ -38,17 +38,17 @@ fn hex_to_bytes(hex: &str) -> Result<[u8; 16], &'static str> {
 #[derive(Parser)]
 #[command(name = "SquashFS Decryptor")]
 #[command(about = "Decrypts SquashFS files using RC4")]
-struct Cli {
+struct Args {
     input_file: String,
     #[arg(long)]
     key: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cli = Cli::parse();
+    let args = Args::parse();
 
-    let input_file = &cli.input_file;
-    let key_str = &cli.key;
+    let input_file = &args.input_file;
+    let key_str = &args.key;
 
     // Convert key from hex string to bytes
     let key = match hex_to_bytes(key_str) {
