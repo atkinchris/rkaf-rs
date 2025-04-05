@@ -61,8 +61,6 @@ dependencies = [
 [[package]]
 name = "backhand"
 version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81e407ed987e67ac147f68f801e84a7628107acae7ac98439ee0c39d33c599dd"
 dependencies = [
  "deku",
  "flate2",
