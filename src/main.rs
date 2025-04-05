@@ -1,4 +1,4 @@
-use backhand::kind::Kind;
+use backhand::kind::{Kind, LE_V4_0};
 use backhand::{BufReadSeek, FilesystemReader, FilesystemWriter, Squashfs};
 use clap::Parser;
 use std::fs::File;
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader: Box<dyn BufReadSeek> = Box::new(cursor);
     let superblock = match Squashfs::superblock_and_compression_options(
         &mut reader,
-        &Kind::from_target("le_v4_0")?,
+        &Kind::from_const(LE_V4_0)?,
     )? {
         (superblock, _) => superblock,
     };
