@@ -1,5 +1,5 @@
 use backhand::kind::Kind;
-use backhand::{BufReadSeek, FilesystemReader, Squashfs};
+use backhand::{BufReadSeek, FilesystemReader, FilesystemWriter, Squashfs};
 use clap::Parser;
 use std::fs::File;
 use std::io::{Cursor, Read};
@@ -118,11 +118,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let compressor = CustomCompressor::new_static(key);
     let kind = Kind::new(compressor);
     let cursor = Cursor::new(buffer);
-    let filesystem = FilesystemReader::from_reader_with_offset_and_kind(cursor, 0, kind)?;
+    let filesystem_reader = FilesystemReader::from_reader_with_offset_and_kind(cursor, 0, kind)?;
 
-    filesystem.files().for_each(|file| {
+    filesystem_reader.files().for_each(|file| {
         println!("File: {}", file.fullpath.display());
     });
+
+    // Create a writer
+    let mut filesystem_writer = FilesystemWriter::from_fs_reader(&filesystem_reader)?;
+
+    // Write the filesystem to a new file
+    // This will create a new SquashFS file with the decrypted data
+    let mut output = File::create("decrypted.squashfs")?;
+    filesystem_writer.write(&mut output)?;
 
     Ok(())
 }
