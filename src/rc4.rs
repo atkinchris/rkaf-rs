@@ -222,7 +222,6 @@ mod tests {
 
         // Determine split point
         let split_point = plaintext.len() / 2;
-        let first_half = &plaintext[..split_point];
         let second_half = &plaintext[split_point..];
 
         // Approach 1: Encrypt the entire plaintext
