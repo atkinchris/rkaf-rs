@@ -1,8 +1,8 @@
 #[derive(Copy, Clone)]
 pub struct RC4 {
-    pub state: [u8; 256],
-    pub index_i: u8,
-    pub index_j: u8,
+    state: [u8; 256],
+    index_i: u8,
+    index_j: u8,
 }
 
 impl RC4 {
