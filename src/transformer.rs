@@ -16,7 +16,7 @@ impl CustomTransformer {
 }
 
 impl TransformAction for CustomTransformer {
-    fn from(&self, buffer: &mut Vec<u8>, skip: Option<usize>) -> Result<(), BackhandError> {
+    fn from(&self, buffer: &mut [u8], skip: Option<usize>) -> Result<(), BackhandError> {
         let mut rc4 = RC4::new(&self.key);
 
         if let Some(skip) = skip {
