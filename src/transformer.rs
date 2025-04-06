@@ -2,12 +2,6 @@ use backhand::{BackhandError, transformation::TransformAction};
 
 use crate::rc4::RC4;
 
-static mut RC4: RC4 = RC4 {
-    state: [0; 256],
-    index_i: 0,
-    index_j: 0,
-};
-
 #[derive(Copy, Clone)]
 pub struct CustomTransformer {
     key: [u8; 16],
@@ -22,27 +16,14 @@ impl CustomTransformer {
 }
 
 impl TransformAction for CustomTransformer {
-    fn from(&self, buffer: &mut Vec<u8>) -> Result<(), BackhandError> {
-        unsafe {
-            // Initialize the RC4 state
-            #[allow(static_mut_refs)]
-            RC4.init(&self.key);
+    fn from(&self, buffer: &mut Vec<u8>, skip: Option<usize>) -> Result<(), BackhandError> {
+        let mut rc4 = RC4::new(&self.key);
 
-            // Decrypt the data
-            #[allow(static_mut_refs)]
-            RC4.process(buffer);
-        };
-
-        Ok(())
-    }
-
-    fn reset(&self) -> Result<(), BackhandError> {
-        unsafe {
-            // Reset the RC4 state
-            #[allow(static_mut_refs)]
-            RC4.init(&self.key);
+        if let Some(skip) = skip {
+            rc4.process(&mut vec![0; skip]);
         }
 
+        rc4.process(buffer);
         Ok(())
     }
 }
