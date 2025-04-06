@@ -37,16 +37,29 @@ impl RC4 {
         self.index_j = 0;
     }
 
-    /// Decrypt data in-place
+    /// Process (encrypt/decrypt) data in-place
+    ///
+    /// RC4 is a symmetric cipher, so the same function is used for both
+    /// encryption and decryption.
     pub fn process(&mut self, data: &mut [u8]) {
         for byte in data.iter_mut() {
+            // Update index i
             self.index_i = self.index_i.wrapping_add(1);
+
+            // Update index j
             self.index_j = self.index_j.wrapping_add(self.state[self.index_i as usize]);
+
+            // Swap the values at indices i and j
             self.state
                 .swap(self.index_i as usize, self.index_j as usize);
-            let k = self.state[(self.state[self.index_i as usize]
-                .wrapping_add(self.state[self.index_j as usize]))
-                as usize];
+
+            // Calculate the key byte
+            let i = self.index_i as usize;
+            let j = self.index_j as usize;
+            let sum = (self.state[i].wrapping_add(self.state[j])) as usize;
+            let k = self.state[sum];
+
+            // XOR the input byte with the key byte
             *byte ^= k;
         }
     }
